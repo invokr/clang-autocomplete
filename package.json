@@ -1,8 +1,8 @@
 {
   "name": "clang-autocomplete",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Native NodeJS module that provides bindings to libclang and libllvm for C/C++ autocompletion",
-  "main": "build/Release/clang-autocomplete.node",
+  "main": "build/Release/clang_autocomplete.node",
   "scripts": {
     "test": "node-gyp configure build && nodeunit test"
   },
