@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <sys/time.h>
-#include <iostream>
 
 #include "autocomplete.hpp"
 
@@ -185,7 +184,6 @@ namespace clang_autocomplete {
             trans = instance->mCache.get(sFile);
         	clang_reparseTranslationUnit(trans, 0, NULL, 0);
         } else {
-            std::cout << cArgs.size() << std::endl;
             trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
             instance->mCache.insert(sFile, trans);
         }
@@ -200,10 +198,8 @@ namespace clang_autocomplete {
         uint32_t j = 0;
         for (unsigned i = 0; i < res->NumResults; ++i) {
             // skip unessecary completion results
-            if (clang_getCompletionAvailability(res->Results[i].CompletionString) == CXAvailability_NotAccessible || !instance->completeCursor(res->Results[i].CursorKind)) {
-                std::cout << "Skipping " << res->Results[i].CursorKind << std::endl;
+            if (clang_getCompletionAvailability(res->Results[i].CompletionString) == CXAvailability_NotAccessible || !instance->completeCursor(res->Results[i].CursorKind)) 
                 continue;
-            }
 
             Handle<Object> rObj = Object::New();
             Handle<Array> rArgs = Array::New();
