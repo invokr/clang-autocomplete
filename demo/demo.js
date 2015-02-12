@@ -1,5 +1,5 @@
 // Get the native module and initialize the library
-var clang_autocomplete = require("clang_autocomplete");
+var clang_autocomplete = require("clang-autocomplete");
 var ccomplete = new clang_autocomplete.lib();
 
 // Set the compiler arguments
@@ -7,5 +7,5 @@ ccomplete.arguments = new Array("-std=c++0x", "-I/usr/include", "-I/usr/local/in
 
 // Print the code completion results
 console.log(
-    ccomplete.Complete("./demo.cpp", 5, 6)
+    ccomplete.Complete("./demo.cpp", 5, 7)
 );
