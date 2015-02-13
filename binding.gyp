@@ -14,6 +14,7 @@
         "-I/usr/lib/",
         "-I/usr/lib64/",
         "-I/usr/lib/llvm",
+        "-I/usr/lib/llvm-3.5/include",
         "-I/usr/include/",
         "-I/usr/local/include/",
       ],
@@ -23,10 +24,9 @@
         "-lLLVM-3.5",
         "-L/usr/local/llvm35/lib/",
         "-L/usr/lib/x86_64-linux-gnu/",
-        "-L/usr/lib/i386-linux-gnu/"
+        "-L/usr/lib/i386-linux-gnu/",
+        "-L/usr/lib/llvm-3.5/lib"
       ]
     }
   ]
 }
-
-
