@@ -269,6 +269,9 @@ namespace clang_autocomplete {
                             case CXCompletionChunk_Placeholder:
                                 rArgs->Set(l++, String::New(text));
                                 break;
+
+                            default:
+                                break;
                         }
                         break;
 
@@ -307,6 +310,9 @@ namespace clang_autocomplete {
                             case CXCompletionChunk_Informative:
                                 rQualifiers->Set(m++, String::New(text)); // does not seem to propagate noexcept, etc.
                                 break;
+
+                            default:
+                                break;
                         }
                         break;
 
@@ -342,6 +348,9 @@ namespace clang_autocomplete {
 
                             case CXCompletionChunk_Informative:
                                 rQualifiers->Set(m++, String::New(text)); // does not seem to propagate noexcept
+                                break;
+                                
+                            default:
                                 break;
                         }
                         break;
@@ -432,39 +441,6 @@ namespace clang_autocomplete {
         }
 
         return scope.Close(ret);
-    }
-
-    bool autocomplete::completeChunk(CXCompletionChunkKind c) {
-        switch (c) {
-            case CXCompletionChunk_Optional:
-            case CXCompletionChunk_TypedText:
-            case CXCompletionChunk_Text:
-            case CXCompletionChunk_Placeholder:
-            case CXCompletionChunk_Informative:
-            case CXCompletionChunk_CurrentParameter:
-            case CXCompletionChunk_ResultType:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    bool completeCursor(CXCursorKind c) {
-        switch (c) {
-            case CXCursor_CXXMethod:
-            //case CXCursor_NotImplemented:
-            case CXCursor_FieldDecl:
-            case CXCursor_ObjCPropertyDecl:
-            case CXCursor_ObjCClassMethodDecl:
-            case CXCursor_ObjCInstanceMethodDecl:
-            case CXCursor_ObjCIvarDecl:
-            case CXCursor_FunctionTemplate:
-            //case CXCursor_TypedefDecl:
-            case CXCursor_Namespace:
-                return true;
-            default:
-                return false;
-        }
     }
 
     const char* autocomplete::returnType(CXCursorKind ck) {
