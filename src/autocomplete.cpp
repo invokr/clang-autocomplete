@@ -215,7 +215,7 @@ namespace clang_autocomplete {
             std::string cName = "";
             std::string cType = "";
             std::string cDescription = "";
-            std::string cReturnType = instance->returnType(res->Results[i].CursorKind);
+            std::string cReturnType = "";
             std::string cParam = "";
 
             // Populate result
@@ -242,12 +242,14 @@ namespace clang_autocomplete {
                     case CXCursor_EnumDecl:
                         cType = "def";
                         cName = text; // struct only emits text once
+                        cDescription = std::string(instance->returnType(res->Results[i].CursorKind)) + " " + cName;
                         break;
 
                     // enum completion
                     case CXCursor_EnumConstantDecl:
                         if (cKind == CXCompletionChunk_ResultType) {
-                            cReturnType = text; // parent enum
+                            cReturnType = ""; // parent enum
+                            cDescription = std::string("enum ") + cReturnType + "::" + cName;
                         } else {
                             cName = text; // variable
                             cType = "enum_member";
@@ -258,7 +260,7 @@ namespace clang_autocomplete {
                     case CXCursor_FunctionDecl:
                         switch (cKind) {
                             case CXCompletionChunk_ResultType:
-                                cType = "function";
+                                //cType = "function";
                                 cReturnType = text; // function return type;
                                 break;
 
@@ -269,27 +271,27 @@ namespace clang_autocomplete {
                             case CXCompletionChunk_Placeholder:
                                 rArgs->Set(l++, String::New(text));
                                 break;
-
-                            default:
-                                std::cout << text << cKind << std::endl;
                         }
                         break;
 
                     // a variable
                     case CXCursor_VarDecl:
                         if (cKind == CXCompletionChunk_ResultType) {
-                            cReturnType = text; // parent enum
+                            cReturnType = text; // type
                         } else {
                             cName = text; // variable
                             cType = "variable";
                         }
                         break;
 
-                    // function parameter
-                    case CXCursor_ParmDecl:
+                    // typedef
+                    case CXCursor_TypedefDecl:
+                        cName = text;
+                        cType = "typedef";
                         break;
 
                     // unhandled for now
+                    case CXCursor_ParmDecl:
                     case CXCursor_FieldDecl:
                         std::cout << "Unhandled " << text << std::endl;
                         break;
@@ -429,8 +431,6 @@ namespace clang_autocomplete {
             case CXCursor_NamespaceAlias:
             case CXCursor_Namespace:
                 return "namespace";
-            case CXCursor_TypedefDecl:
-                return "typedef";
             case CXCursor_Constructor:
                 return "constructor";
             case CXCursor_Destructor:
