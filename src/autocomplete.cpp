@@ -69,6 +69,7 @@ namespace clang_autocomplete {
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "Complete", Complete);
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "Diagnose", Diagnose);
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "MemoryUsage", MemoryUsage);
+        NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "ClearCache", ClearCache);
 
         target->Set(String::NewSymbol("lib"), autocomplete::constructor->GetFunction());
     }
@@ -485,6 +486,14 @@ namespace clang_autocomplete {
         }
 
         return scope.Close(ret);
+    }
+
+    Handle<Value> autocomplete::ClearCache(const Arguments& args) {
+        HandleScope scope;
+        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
+
+        instance->mCache.clear();
+        return scope.Close(Handle<Value>(Number::New(1)));
     }
 
     const char* autocomplete::returnType(CXCursorKind ck) {

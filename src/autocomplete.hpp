@@ -67,6 +67,9 @@ namespace clang_autocomplete {
 
         /** Returns memory usage of cached translation units in bytes */
         static Handle<Value> MemoryUsage(const Arguments& args);
+
+        /** Purges all cached translation units */
+        static Handle<Value> ClearCache(const Arguments& args);
     private:
         /** List of arguments passed to clang */
         std::vector<std::string> mArgs;
