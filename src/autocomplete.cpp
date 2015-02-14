@@ -324,6 +324,12 @@ namespace clang_autocomplete {
                         }
                         break;
 
+                    // namespace
+                    case CXCursor_Namespace:
+                        cType = "namespace";
+                        cName = text;
+                        break;
+
                     // unhandled for now
                     case CXCursor_ParmDecl:
                         std::cout << "Unhandled " << text << std::endl;
