@@ -81,9 +81,6 @@ namespace clang_autocomplete {
         /** Invoked when a new instance is created in NodeJs */
         static Handle<Value> New(const Arguments& args);
 
-        /** Returns true if given cursor chould be completed */
-        bool completeCursor(CXCursorKind c);
-
         /** Returns true if the given chunk should be pushed */
         bool completeChunk(CXCompletionChunkKind c);
 
