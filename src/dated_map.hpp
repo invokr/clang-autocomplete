@@ -131,6 +131,15 @@ namespace clang_autocomplete {
             return it->second.value;
         }
 
+        /** Clears the map, removing any cached entries */
+        void clear() {
+            for (auto &it : mEntries) {
+                mCb(it.first, it.second.value);
+            }
+
+            mEntries.clear();
+        }
+
         /** Pushes a new entry */
         void insert(K key, V value) {
             mEntries.insert({key, {time(NULL), time(NULL), value}});
