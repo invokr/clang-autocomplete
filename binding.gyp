@@ -7,7 +7,6 @@
         "-g",
         "-std=c++0x",
         "-Wall",
-        "-Wno-delete-incomplete",
         "-Wno-unused-variable",
 
         "-I/usr/local/llvm35/include/",

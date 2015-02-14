@@ -69,9 +69,7 @@ namespace clang_autocomplete {
         typedef typename container::value_type value_type;
 
         /** Constructor */
-        dated_map() : mCheckInterval(10), mExpirationTime(30), mLastCheck(time(NULL)), mCb([](K key, V value) noexcept {
-            detail::delete_if_pointer(value);
-        }) {
+        dated_map() : mCheckInterval(10), mExpirationTime(30), mLastCheck(time(NULL)), mCb() {
 
         }
 
