@@ -68,6 +68,7 @@ namespace clang_autocomplete {
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "Version", Version);
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "Complete", Complete);
         NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "Diagnose", Diagnose);
+        NODE_SET_PROTOTYPE_METHOD(autocomplete::constructor, "MemoryUsage", MemoryUsage);
 
         target->Set(String::NewSymbol("lib"), autocomplete::constructor->GetFunction());
     }
@@ -452,6 +453,35 @@ namespace clang_autocomplete {
             clang_disposeString(file);
             clang_disposeString(str);
             clang_disposeDiagnostic(d);
+        }
+
+        return scope.Close(ret);
+    }
+
+    Handle<Value> autocomplete::MemoryUsage(const Arguments& args) {
+        HandleScope scope;
+        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
+
+        Handle<Array> ret = Array::New();
+        uint32_t j = 0;
+
+        for (auto &e : instance->mCache) {
+            CXTranslationUnit unit = e.second.value;
+            CXTUResourceUsage res = clang_getCXTUResourceUsage(unit);
+            uint32_t all = 0;
+
+            for (unsigned i = 0; i < res.numEntries; ++i ) {
+                CXTUResourceUsageEntry entry = res.entries[i];
+                if (entry.kind <= 14)
+                    all += entry.amount;
+            }
+
+            Handle<Array> entry = Array::New();
+            entry->Set(0, String::New(e.first.c_str()));
+            entry->Set(1, Number::New(all));
+            ret->Set(j++, entry);
+
+            clang_disposeCXTUResourceUsage(res);
         }
 
         return scope.Close(ret);
