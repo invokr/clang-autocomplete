@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <sys/time.h>
+#include <iostream>
 
 #include "autocomplete.hpp"
 
@@ -111,7 +112,7 @@ namespace clang_autocomplete {
 
     Handle<Value> autocomplete::GetCacheExpiration(Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
-        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
+        //autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
 
         // @TODO: Implement
 
@@ -120,7 +121,7 @@ namespace clang_autocomplete {
     }
 
     void autocomplete::SetCacheExpiration(Local<String> property, Local<Value> value, const AccessorInfo& info) {
-        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
+        //autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
 
         if (value->IsUint32()) {
             // @TODO: Implement
@@ -133,7 +134,12 @@ namespace clang_autocomplete {
 
     Handle<Value> autocomplete::Version(const Arguments& args) {
         HandleScope scope;
-        return scope.Close(v8::String::New("1.0"));
+        CXString clang_v = clang_getClangVersion();
+
+        std::string ver = std::string("0.2.0 (clang-autocomplete); ")+std::string(clang_getCString(clang_v));
+        clang_disposeString(clang_v);
+
+        return scope.Close(v8::String::New(ver.c_str()));
     }
 
     Handle<Value> autocomplete::Complete(const Arguments& args) {
@@ -198,48 +204,127 @@ namespace clang_autocomplete {
         uint32_t j = 0;
         for (unsigned i = 0; i < res->NumResults; ++i) {
             // skip unessecary completion results
-            if (clang_getCompletionAvailability(res->Results[i].CompletionString) == CXAvailability_NotAccessible || !instance->completeCursor(res->Results[i].CursorKind)) 
+            if (clang_getCompletionAvailability(res->Results[i].CompletionString) == CXAvailability_NotAccessible)
                 continue;
 
             Handle<Object> rObj = Object::New();
             Handle<Array> rArgs = Array::New();
 
             uint32_t results = clang_getNumCompletionChunks(res->Results[i].CompletionString);
-            CXString cBrief = clang_getCompletionBriefComment(res->Results[i].CompletionString);
 
-            std::string cDescription = (cBrief.data) ? clang_getCString(cBrief) : "";
+            std::string cName = "";
+            std::string cType = "";
+            std::string cDescription = "";
             std::string cReturnType = instance->returnType(res->Results[i].CursorKind);
+            std::string cParam = "";
 
             // Populate result
             uint32_t l = 0;
             for (uint32_t k = 0; k < results; ++k) {
                 CXCompletionChunkKind cKind = clang_getCompletionChunkKind(res->Results[i].CompletionString, k);
 
+                // Do not complete stuff like brackets
                 if (!instance->completeChunk(cKind))
                     continue;
 
+                // Get the completion chunk text
                 CXString cText = clang_getCompletionChunkText(res->Results[i].CompletionString, k);
-
                 const char *text = clang_getCString(cText);
                 if (!text)
                     text = "";
 
-                if (cKind == CXCompletionChunk_ResultType) {
-                    // Better return type than the generic version
-                    cReturnType = text;
-                } else {
-                    rArgs->Set(l++, String::New(text));
+                // Switch on the completion type
+                switch (res->Results[i].CursorKind) {
+                    // class / union / struct / enum
+                    case CXCursor_UnionDecl:
+                    case CXCursor_ClassDecl:
+                    case CXCursor_StructDecl:
+                    case CXCursor_EnumDecl:
+                        cType = "def";
+                        cName = text; // struct only emits text once
+                        break;
+
+                    // enum completion
+                    case CXCursor_EnumConstantDecl:
+                        if (cKind == CXCompletionChunk_ResultType) {
+                            cReturnType = text; // parent enum
+                        } else {
+                            cName = text; // variable
+                            cType = "enum_member";
+                        }
+                        break;
+
+                    // a single function decleration
+                    case CXCursor_FunctionDecl:
+                        switch (cKind) {
+                            case CXCompletionChunk_ResultType:
+                                cType = "function";
+                                cReturnType = text; // function return type;
+                                break;
+
+                            case CXCompletionChunk_TypedText:
+                                cName = text; // function name
+                                break;
+
+                            case CXCompletionChunk_Placeholder:
+                                rArgs->Set(l++, String::New(text));
+                                break;
+
+                            default:
+                                std::cout << text << cKind << std::endl;
+                        }
+                        break;
+
+                    // a variable
+                    case CXCursor_VarDecl:
+                        if (cKind == CXCompletionChunk_ResultType) {
+                            cReturnType = text; // parent enum
+                        } else {
+                            cName = text; // variable
+                            cType = "variable";
+                        }
+                        break;
+
+                    // function parameter
+                    case CXCursor_ParmDecl:
+                        break;
+
+                    // unhandled for now
+                    case CXCursor_FieldDecl:
+                        std::cout << "Unhandled " << text << std::endl;
+                        break;
+
+                    // default
+                    default:
+                        clang_disposeString(cText);
+                        continue;
                 }
+
+                // insert left over parameter
+                if (cParam != "")
+                    rArgs->Set(l++, String::New(cParam.c_str()));
 
                 clang_disposeString(cText);
             }
 
-            rObj->Set(String::New("function"), rArgs);
-            rObj->Set(String::New("return"), String::New(cReturnType.c_str()));
-            rObj->Set(String::New("brief"), String::New(cDescription.c_str()));
+            if (cType != "") {
+                rObj->Set(String::New("name"), String::New(cName.c_str()));
+                rObj->Set(String::New("type"), String::New(cType.c_str()));
+                rObj->Set(String::New("return"), String::New(cReturnType.c_str()));
+                rObj->Set(String::New("description"), String::New(cDescription.c_str()));
+                rObj->Set(String::New("params"), rArgs);
 
-            ret->Set(j++, rObj);
+                ret->Set(j++, rObj);
+            }
         }
+
+        /*
+        std::cout << "Results: " << clang_codeCompleteGetNumDiagnostics(res) << std::endl;
+        for (unsigned i = 0; i < clang_codeCompleteGetNumDiagnostics(res); ++i) {
+            CXDiagnostic diag = clang_codeCompleteGetDiagnostic(res, i);
+            const CXString& s = clang_getDiagnosticSpelling(diag);
+            std::cout << "RES:" << clang_getCString(s) << std::endl;
+        } */
 
         clang_disposeCodeCompleteResults(res);
         return scope.Close(ret);
@@ -311,7 +396,7 @@ namespace clang_autocomplete {
         }
     }
 
-    bool autocomplete::completeCursor(CXCursorKind c) {
+    bool completeCursor(CXCursorKind c) {
         switch (c) {
             case CXCursor_CXXMethod:
             //case CXCursor_NotImplemented:
