@@ -225,10 +225,6 @@ namespace clang_autocomplete {
             for (uint32_t k = 0; k < results; ++k) {
                 CXCompletionChunkKind cKind = clang_getCompletionChunkKind(res->Results[i].CompletionString, k);
 
-                // Do not complete stuff like brackets
-                if (!instance->completeChunk(cKind))
-                    continue;
-
                 // Get the completion chunk text
                 CXString cText = clang_getCompletionChunkText(res->Results[i].CompletionString, k);
                 const char *text = clang_getCString(cText);
@@ -326,13 +322,36 @@ namespace clang_autocomplete {
 
                     // namespace
                     case CXCursor_Namespace:
-                        cType = "namespace";
-                        cName = text;
+                        if (cKind == CXCompletionChunk_TypedText) {
+                            cType = "namespace";
+                            cName = text;
+                        }
                         break;
 
-                    // unhandled for now
-                    case CXCursor_ParmDecl:
-                        std::cout << "Unhandled " << text << std::endl;
+                    // class constructor
+                    case CXCursor_Constructor:
+                        switch (cKind) {
+                            case CXCompletionChunk_TypedText:
+                                cName = text; // class name
+                                cType = "constructor";
+                                break;
+
+                            case CXCompletionChunk_Placeholder:
+                                rArgs->Set(l++, String::New(text));
+                                break;
+
+                            case CXCompletionChunk_Informative:
+                                rQualifiers->Set(m++, String::New(text)); // does not seem to propagate noexcept
+                                break;
+                        }
+                        break;
+
+                    // Sometimes points to the current parameter
+                    case CXCursor_NotImplemented:
+                        if (cKind == CXCompletionChunk_CurrentParameter) {
+                            cType = "current";
+                            cName = text;
+                        }
                         break;
 
                     // default
@@ -359,14 +378,6 @@ namespace clang_autocomplete {
                 ret->Set(j++, rObj);
             }
         }
-
-        /*
-        std::cout << "Results: " << clang_codeCompleteGetNumDiagnostics(res) << std::endl;
-        for (unsigned i = 0; i < clang_codeCompleteGetNumDiagnostics(res); ++i) {
-            CXDiagnostic diag = clang_codeCompleteGetDiagnostic(res, i);
-            const CXString& s = clang_getDiagnosticSpelling(diag);
-            std::cout << "RES:" << clang_getCString(s) << std::endl;
-        } */
 
         clang_disposeCodeCompleteResults(res);
         return scope.Close(ret);
