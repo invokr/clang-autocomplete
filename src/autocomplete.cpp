@@ -181,7 +181,7 @@ namespace clang_autocomplete {
         uint32_t col = args[2]->ToUint32()->Value();
 
         // The completion options
-        unsigned options = CXTranslationUnit_IncludeBriefCommentsInCodeCompletion | CXTranslationUnit_PrecompiledPreamble | CXTranslationUnit_CacheCompletionResults;
+        unsigned options = CXTranslationUnit_PrecompiledPreamble | CXTranslationUnit_CacheCompletionResults;
 
         CXTranslationUnit trans;
         std::string sFile(*file, file.length());
@@ -349,7 +349,7 @@ namespace clang_autocomplete {
                             case CXCompletionChunk_Informative:
                                 rQualifiers->Set(m++, String::New(text)); // does not seem to propagate noexcept
                                 break;
-                                
+
                             default:
                                 break;
                         }
@@ -368,10 +368,6 @@ namespace clang_autocomplete {
                         clang_disposeString(cText);
                         continue;
                 }
-
-                // insert left over parameter
-                if (cParam != "")
-                    rArgs->Set(l++, String::New(cParam.c_str()));
 
                 clang_disposeString(cText);
             }
@@ -426,17 +422,35 @@ namespace clang_autocomplete {
         if (!trans)
             return ThrowException(Exception::Error(String::New("Unable to build translation unit")));
 
-        int dOpt = CXDiagnostic_DisplaySourceLocation | CXDiagnostic_DisplayColumn;
+        int dOpt = 0;
 
         // iterate through diagnostics
         uint32_t j = 0;
         for (uint32_t i = 0; i < clang_getNumDiagnostics(trans); ++i) {
             CXDiagnostic d = clang_getDiagnostic(trans, i);
+
+            // get diagnostic warning
             CXString str = clang_formatDiagnostic(d, dOpt);
-            std::string r(clang_getCString(str));
 
-            ret->Set(j++, String::New(r.c_str()));
+            // get diagnostic location
+            CXString file;
+            unsigned line;
+            unsigned col;
+            CXSourceLocation loc = clang_getDiagnosticLocation(d);
+            clang_getPresumedLocation(loc, &file, &line, &col);
 
+            // propagate to node
+            Handle<Array> diagnostics = Array::New();
+            diagnostics->Set(0, String::New(clang_getCString(file)));
+            diagnostics->Set(1, Number::New(line));
+            diagnostics->Set(2, Number::New(col));
+            diagnostics->Set(3, String::New(clang_getCString(str)));
+            diagnostics->Set(4, Number::New(clang_getDiagnosticSeverity(d)));
+
+            ret->Set(j++, diagnostics);
+
+            clang_disposeString(file);
+            clang_disposeString(str);
             clang_disposeDiagnostic(d);
         }
 
