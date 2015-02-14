@@ -209,6 +209,7 @@ namespace clang_autocomplete {
 
             Handle<Object> rObj = Object::New();
             Handle<Array> rArgs = Array::New();
+            Handle<Array> rQualifiers = Array::New();
 
             uint32_t results = clang_getNumCompletionChunks(res->Results[i].CompletionString);
 
@@ -220,6 +221,7 @@ namespace clang_autocomplete {
 
             // Populate result
             uint32_t l = 0;
+            uint32_t m = 0;
             for (uint32_t k = 0; k < results; ++k) {
                 CXCompletionChunkKind cKind = clang_getCompletionChunkKind(res->Results[i].CompletionString, k);
 
@@ -260,7 +262,7 @@ namespace clang_autocomplete {
                     case CXCursor_FunctionDecl:
                         switch (cKind) {
                             case CXCompletionChunk_ResultType:
-                                //cType = "function";
+                                cType = "function";
                                 cReturnType = text; // function return type;
                                 break;
 
@@ -290,9 +292,40 @@ namespace clang_autocomplete {
                         cType = "typedef";
                         break;
 
+                    // class member function
+                    case CXCursor_CXXMethod:
+                        switch (cKind) {
+                            case CXCompletionChunk_ResultType:
+                                cType = "method";
+                                cReturnType = text; // function return type;
+                                break;
+
+                            case CXCompletionChunk_TypedText:
+                                cName = text; // function name
+                                break;
+
+                            case CXCompletionChunk_Placeholder:
+                                rArgs->Set(l++, String::New(text));
+                                break;
+
+                            case CXCompletionChunk_Informative:
+                                rQualifiers->Set(m++, String::New(text)); // does not seem to propagate noexcept, etc.
+                                break;
+                        }
+                        break;
+
+                    // class member variable
+                    case CXCursor_FieldDecl:
+                        if (cKind == CXCompletionChunk_ResultType) {
+                            cReturnType = text; // type
+                        } else {
+                            cName = text; // variable
+                            cType = "member";
+                        }
+                        break;
+
                     // unhandled for now
                     case CXCursor_ParmDecl:
-                    case CXCursor_FieldDecl:
                         std::cout << "Unhandled " << text << std::endl;
                         break;
 
@@ -315,6 +348,7 @@ namespace clang_autocomplete {
                 rObj->Set(String::New("return"), String::New(cReturnType.c_str()));
                 rObj->Set(String::New("description"), String::New(cDescription.c_str()));
                 rObj->Set(String::New("params"), rArgs);
+                rObj->Set(String::New("qualifiers"), rQualifiers);
 
                 ret->Set(j++, rObj);
             }
