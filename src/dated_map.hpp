@@ -133,6 +133,15 @@ namespace clang_autocomplete {
             return it->second.value;
         }
 
+        /** Removes a single cache entry */
+        void remove(const K& key) {
+            auto it = mEntries.find(key);
+            if (it != mEntries.end()) {
+                mCb(it->first, it->second.value);
+                mEntries.erase(it);
+            }
+        }
+
         /** Clears the map, removing any cached entries */
         void clear() {
             for (auto &it : mEntries) {

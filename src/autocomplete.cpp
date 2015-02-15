@@ -490,7 +490,18 @@ namespace clang_autocomplete {
         HandleScope scope;
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
 
-        instance->mCache.clear();
+        if (args.Length() == 1) {
+            if (!args[0]->IsString())
+                return ThrowException(
+                    Exception::TypeError(String::New("First argument must be a String or undefined"))
+                );
+
+            String::Utf8Value file(args[0]);
+            instance->mCache.remove(std::string(*file, file.length()));
+        } else {
+            instance->mCache.clear();
+        }
+
         return scope.Close(Undefined());
     }
 
