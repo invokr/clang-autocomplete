@@ -126,6 +126,8 @@ namespace clang_autocomplete {
                         mEntries.erase(it++);
                     }
                 }
+
+                mLastCheck = time(NULL);
             }
 
             return it->second.value;
