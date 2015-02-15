@@ -187,7 +187,7 @@ namespace clang_autocomplete {
         if (instance->mCache.has(sFile)) {
             // reparsing saves a moderate amount of time
             trans = instance->mCache.get(sFile);
-        	clang_reparseTranslationUnit(trans, 0, NULL, 0);
+            clang_reparseTranslationUnit(trans, 0, NULL, 0);
         } else {
             trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
             instance->mCache.insert(sFile, trans);
@@ -218,7 +218,6 @@ namespace clang_autocomplete {
             std::string cDescription = "";
             std::string cReturnType = "";
             std::string cParam = "";
-
 
             // Populate result
             uint32_t l = 0;
