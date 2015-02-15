@@ -4,7 +4,8 @@
       "target_name": "clang_autocomplete",
       "sources": ["src/autocomplete.cpp"],
       "cflags_cc": [
-        "-g",
+        "-O2",
+        "-fomit-frame-pointer",
         "-std=c++0x",
         "-Wall",
         "-Wno-unused-variable",
