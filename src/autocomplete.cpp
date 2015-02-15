@@ -79,7 +79,7 @@ namespace clang_autocomplete {
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
 
         // Get a list of all arguments for node
-        Handle<Array> res = Array::New(instance->mArgs.size());
+        Local<Array> res = Array::New(instance->mArgs.size());
         for (std::size_t i = 0; i < instance->mArgs.size(); ++i)
             res->Set(i, String::New(instance->mArgs[i].c_str()));
 
@@ -94,7 +94,7 @@ namespace clang_autocomplete {
             // If we get multiple arguments, clear the list and append them all
             instance->mArgs.clear();
 
-            Handle<Array> arr = Handle<Array>::Cast(value);
+            Local<Array> arr = Local<Array>::Cast(value);
             instance->mArgs.reserve(arr->Length());
 
             for (std::size_t i = 0; i < arr->Length(); ++i) {
@@ -114,19 +114,15 @@ namespace clang_autocomplete {
 
     Handle<Value> autocomplete::GetCacheExpiration(Local<String> property, const AccessorInfo& info) {
         HandleScope scope;
-        //autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
-
-        // @TODO: Implement
-
-        Handle<Integer> res = Integer::New(0);
-        return scope.Close(res);
+        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
+        return scope.Close(Integer::New(instance->mCache.get_expiration()));
     }
 
     void autocomplete::SetCacheExpiration(Local<String> property, Local<Value> value, const AccessorInfo& info) {
-        //autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
+        autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
 
         if (value->IsUint32()) {
-            // @TODO: Implement
+            instance->mCache.set_expiration(value->Uint32Value());
         } else {
             ThrowException(
                 Exception::TypeError(String::New("First argument must be an Integer"))
@@ -223,7 +219,7 @@ namespace clang_autocomplete {
             std::string cReturnType = "";
             std::string cParam = "";
 
-            
+
             // Populate result
             uint32_t l = 0;
             uint32_t m = 0;
