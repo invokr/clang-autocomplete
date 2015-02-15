@@ -165,7 +165,7 @@ namespace clang_autocomplete {
         HandleScope scope;
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
 
-        Handle<Array> ret = Array::New();
+        Local<Array> ret = Array::New();
 
         // Convert string vector to a const char* vector for clang_parseTranslationUnit
         std::vector<const char*> cArgs;
