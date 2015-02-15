@@ -150,9 +150,19 @@ namespace clang_autocomplete {
             mExpirationTime = expiration_time;
         }
 
+        /** Returns cache entry expiration time */
+        uint32_t get_expiration() noexcept {
+            return mExpirationTime;
+        }
+
         /** Sets the time between expiration checks */
         void set_frequency(uint32_t check_frequency) noexcept {
             mCheckInterval = check_frequency;
+        }
+
+        /** Returns time between expiration checks */
+        void get_frequency() noexcept {
+            return mCheckInterval;
         }
 
         /** Sets the callback function invoked on each deleted entry */
