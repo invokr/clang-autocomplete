@@ -169,6 +169,8 @@ namespace clang_autocomplete {
         HandleScope scope;
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
 
+        Handle<Array> ret = Array::New();
+
         // Convert string vector to a const char* vector for clang_parseTranslationUnit
         std::vector<const char*> cArgs;
         std::transform( instance->mArgs.begin(), instance->mArgs.end(), std::back_inserter(cArgs),
@@ -177,7 +179,6 @@ namespace clang_autocomplete {
             }
         );
 
-        Handle<Array> ret = Array::New();
         String::Utf8Value file(args[0]);
         uint32_t row = args[1]->ToUint32()->Value();
         uint32_t col = args[2]->ToUint32()->Value();
@@ -203,15 +204,16 @@ namespace clang_autocomplete {
         // Iterate over the code completion results
         CXCodeCompleteResults *res = clang_codeCompleteAt(trans, *file, row, col, NULL, 0, 0);
 
+
         uint32_t j = 0;
         for (unsigned i = 0; i < res->NumResults; ++i) {
             // skip unessecary completion results
             if (clang_getCompletionAvailability(res->Results[i].CompletionString) == CXAvailability_NotAccessible)
                 continue;
 
-            Handle<Object> rObj = Object::New();
-            Handle<Array> rArgs = Array::New();
-            Handle<Array> rQualifiers = Array::New();
+            Local<Object> rObj = Object::New();
+            Local<Array> rArgs = Array::New();
+            Local<Array> rQualifiers = Array::New();
 
             uint32_t results = clang_getNumCompletionChunks(res->Results[i].CompletionString);
 
@@ -221,6 +223,7 @@ namespace clang_autocomplete {
             std::string cReturnType = "";
             std::string cParam = "";
 
+            
             // Populate result
             uint32_t l = 0;
             uint32_t m = 0;
