@@ -413,7 +413,7 @@ namespace clang_autocomplete {
             }
         );
 
-        Handle<Array> ret = Array::New();
+        Local<Array> ret = Array::New();
         String::Utf8Value file(args[0]);
 
         // Don't cache diagnostics
@@ -441,7 +441,7 @@ namespace clang_autocomplete {
             clang_getPresumedLocation(loc, &file, &line, &col);
 
             // propagate to node
-            Handle<Array> diagnostics = Array::New();
+            Local<Array> diagnostics = Array::New();
             diagnostics->Set(0, String::New(clang_getCString(file)));
             diagnostics->Set(1, Number::New(line));
             diagnostics->Set(2, Number::New(col));
@@ -462,7 +462,7 @@ namespace clang_autocomplete {
         HandleScope scope;
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
 
-        Handle<Array> ret = Array::New();
+        Local<Array> ret = Array::New();
         uint32_t j = 0;
 
         for (auto &e : instance->mCache) {
@@ -476,7 +476,7 @@ namespace clang_autocomplete {
                     all += entry.amount;
             }
 
-            Handle<Array> entry = Array::New();
+            Local<Array> entry = Array::New();
             entry->Set(0, String::New(e.first.c_str()));
             entry->Set(1, Number::New(all));
             ret->Set(j++, entry);
@@ -492,7 +492,7 @@ namespace clang_autocomplete {
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(args.This());
 
         instance->mCache.clear();
-        return scope.Close(Handle<Value>(Number::New(1)));
+        return scope.Close(Undefined());
     }
 
     const char* autocomplete::returnType(CXCursorKind ck) {
