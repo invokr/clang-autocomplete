@@ -89,6 +89,7 @@ namespace clang_autocomplete {
     void autocomplete::SetArgs(Local<String> property, Local<Value> value, const AccessorInfo& info) {
         autocomplete* instance = node::ObjectWrap::Unwrap<autocomplete>(info.Holder());
         instance->mArgs.clear();
+        instance->mCache.clear();
 
         if (value->IsArray()) {
             // If we get multiple arguments, clear the list and append them all
@@ -416,7 +417,7 @@ namespace clang_autocomplete {
         String::Utf8Value file(args[0]);
 
         // Don't cache diagnostics
-        unsigned options = CXTranslationUnit_PrecompiledPreamble;
+        unsigned options = CXTranslationUnit_PrecompiledPreamble | clang_defaultDiagnosticDisplayOptions();
         CXTranslationUnit trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
 
         if (!trans)
