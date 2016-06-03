@@ -1,23 +1,29 @@
 {
-  "name": "clang-autocomplete",
-  "version": "0.3.1",
-  "description": "Native NodeJS module that provides bindings to libclang and libllvm for C/C++ autocompletion",
-  "main": "build/Release/clang_autocomplete.node",
-  "scripts": {
-    "test": "node-gyp configure build && nodeunit test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/invokr/clang_autocomplete.git"
-  },
-  "author": "Robin Dietrich",
-  "license": "Apache 2.0",
-  "bugs": {
-    "url": "https://github.com/invokr/clang-autocomplete/issues"
-  },
-  "homepage": "https://github.com/invokr/clang-autocomplete",
-  "dependencies": {
-    "nodeunit": "0.9.0"
-  },
-  "os" : [ "!win32" ]
+    "name": "clang-autocomplete",
+    "version": "0.3.1",
+    "description": "Native NodeJS module that provides bindings to libclang and libllvm for C/C++ autocompletion",
+    "main": "build/Release/clang_autocomplete.node",
+    "scripts": {
+        "configure": "node-gyp configure",
+        "build": "node-gyp build",
+        "test": "nodeunit test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/invokr/clang_autocomplete.git"
+    },
+    "author": "Robin Dietrich",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/invokr/clang-autocomplete/issues"
+    },
+    "homepage": "https://github.com/invokr/clang-autocomplete",
+    "dependencies": {
+        "nan": "^2.3.5",
+        "nodeunit": "^0.9.0",
+        "node-gyp": "^3.3.1"
+    },
+    "os": [
+        "!win32"
+    ]
 }

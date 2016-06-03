@@ -1,0 +1,9 @@
+-I/usr/local/llvm38/include/
+-I/usr/lib/
+-I/usr/lib64/
+-I/usr/lib/llvm
+-I/usr/lib/llvm-3.8/include
+-I/usr/include/
+-I/usr/local/include/
+-I/usr/include/node
+-Inode_modules/nan/
