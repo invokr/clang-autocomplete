@@ -59,11 +59,11 @@ NAN_MODULE_INIT(autocomplete::Init) {
         v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
 
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
-        tpl->SetClassName(Nan::New("autocomplete").ToLocalChecked());
+        tpl->SetClassName(Nan::New("lib").ToLocalChecked());
 
         // Accessor for args and cache_expiration
-        Nan::SetAccessor(target, Nan::New("arguments").ToLocalChecked(), GetArgs, SetArgs);
-        Nan::SetAccessor(target, Nan::New("cache_expiration").ToLocalChecked(), GetCacheExpiration, SetCacheExpiration);
+        Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("arguments").ToLocalChecked(), GetArgs, SetArgs);
+        Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("cache_expiration").ToLocalChecked(), GetCacheExpiration, SetCacheExpiration);
 
         // Make our methods available to Node
         Nan::SetPrototypeMethod(tpl, "version", Version);
@@ -79,7 +79,7 @@ NAN_MODULE_INIT(autocomplete::Init) {
         Nan::SetPrototypeMethod(tpl, "ClearCache", ClearCache);
 
         constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
-        Nan::Set(target, Nan::New("autocomplete").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
+        Nan::Set(target, Nan::New("lib").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 NAN_GETTER(autocomplete::GetArgs) {
@@ -115,6 +115,7 @@ NAN_SETTER(autocomplete::SetArgs) {
                 instance->mArgs.push_back(*str);
         } else {
                 Nan::ThrowTypeError("First argument must be a String or an Array");
+                return;
         }
 }
 
@@ -130,13 +131,14 @@ NAN_SETTER(autocomplete::SetCacheExpiration) {
                 instance->mCache.set_expiration(value->Uint32Value());
         } else {
                 Nan::ThrowTypeError("First argument must be an Integer");
+                return;
         }
 }
 
 NAN_METHOD(autocomplete::Version) {
         CXString clang_v = clang_getClangVersion();
 
-        std::string ver = std::string("0.2.0 (clang-autocomplete); ")+std::string(clang_getCString(clang_v));
+        std::string ver = std::string("0.3.1 (clang-autocomplete); ")+std::string(clang_getCString(clang_v));
         clang_disposeString(clang_v);
 
         info.GetReturnValue().Set(Nan::New(ver.c_str()).ToLocalChecked());
@@ -144,17 +146,25 @@ NAN_METHOD(autocomplete::Version) {
 
 NAN_METHOD(autocomplete::Complete) {
         // Check if the fuction is called correctly
-        if (info.Length() != 3)
+        if (info.Length() != 3) {
                 Nan::ThrowSyntaxError("Usage: filename, row, column");
+                return;
+        }
 
-        if (!info[0]->IsString())
+        if (!info[0]->IsString()) {
                 Nan::ThrowSyntaxError("First argument must be a String");
+                return;
+        }
 
-        if (!info[1]->IsUint32())
+        if (!info[1]->IsUint32()) {
                 Nan::ThrowSyntaxError("Second argument must be an Integer");
+                return;
+        }
 
-        if (!info[2]->IsUint32())
+        if (!info[2]->IsUint32()) {
                 Nan::ThrowSyntaxError("Third argument must be an Integer");
+                return;
+        }
 
         autocomplete* instance = Nan::ObjectWrap::Unwrap<autocomplete>(info.This());
 
@@ -182,13 +192,21 @@ NAN_METHOD(autocomplete::Complete) {
                 trans = instance->mCache.get(sFile);
                 clang_reparseTranslationUnit(trans, 0, NULL, 0);
         } else {
-                trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
+                //trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
+                if (CXErrorCode err = clang_parseTranslationUnit2(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options, &trans)) {
+                        // TODO: process error
+                        Nan::ThrowError("Unable to build translation unit");
+                        return;
+                }
+
                 instance->mCache.insert(sFile, trans);
         }
 
         // Check if we were able to build the translation unit
-        if (!trans)
+        if (!trans) {
                 Nan::ThrowError("Unable to build translation unit");
+                return;
+        }
 
         // Iterate over the code completion results
         CXCodeCompleteResults *res = clang_codeCompleteAt(trans, *file, row, col, NULL, 0, 0);
@@ -384,11 +402,15 @@ NAN_METHOD(autocomplete::Complete) {
 
 NAN_METHOD(autocomplete::Diagnose) {
         // Check if the fuction is called correctly
-        if (info.Length() != 1)
+        if (info.Length() != 1) {
                 Nan::ThrowSyntaxError("Usage: filename");
+                return;
+        }
 
-        if (!info[0]->IsString())
+        if (!info[0]->IsString()) {
                 Nan::ThrowSyntaxError("First argument must be an String");
+                return;
+        }
 
         // Create the local scope and get the instance
         autocomplete* instance = Nan::ObjectWrap::Unwrap<autocomplete>(info.This());
@@ -408,8 +430,10 @@ NAN_METHOD(autocomplete::Diagnose) {
         unsigned options = CXTranslationUnit_PrecompiledPreamble | clang_defaultDiagnosticDisplayOptions();
         CXTranslationUnit trans = clang_parseTranslationUnit(instance->mIndex, *file, &cArgs[0], cArgs.size(), NULL, 0, options);
 
-        if (!trans)
+        if (!trans) {
                 Nan::ThrowError("Unable to build translation unit");
+                return;
+        }
 
         int dOpt = 0;
 
@@ -478,8 +502,10 @@ NAN_METHOD(autocomplete::ClearCache) {
         autocomplete* instance = Nan::ObjectWrap::Unwrap<autocomplete>(info.This());
 
         if (info.Length() == 1) {
-                if (!info[0]->IsString())
+                if (!info[0]->IsString()) {
                         Nan::ThrowSyntaxError("First argument must be a String or undefined");
+                        return;
+                }
 
                 v8::String::Utf8Value file(info[0]);
                 instance->mCache.remove(std::string(*file, file.length()));
