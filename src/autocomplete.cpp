@@ -62,8 +62,8 @@ NAN_MODULE_INIT(autocomplete::Init) {
         tpl->SetClassName(Nan::New("autocomplete").ToLocalChecked());
 
         // Accessor for args and cache_expiration
-        //Nan::SetAccessor((v8::Local<v8::ObjectTemplate>)tpl, Nan::New("arguments").ToLocalChecked(), GetArgs, SetArgs);
-        //Nan::SetAccessor((v8::Local<v8::ObjectTemplate>)tpl, Nan::New("cache_expiration").ToLocalChecked(), GetCacheExpiration, SetCacheExpiration);
+        Nan::SetAccessor(target, Nan::New("arguments").ToLocalChecked(), GetArgs, SetArgs);
+        Nan::SetAccessor(target, Nan::New("cache_expiration").ToLocalChecked(), GetCacheExpiration, SetCacheExpiration);
 
         // Make our methods available to Node
         Nan::SetPrototypeMethod(tpl, "version", Version);
