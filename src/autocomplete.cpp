@@ -72,6 +72,12 @@ NAN_MODULE_INIT(autocomplete::Init) {
         Nan::SetPrototypeMethod(tpl, "memoryUsage", MemoryUsage);
         Nan::SetPrototypeMethod(tpl, "clearCache", ClearCache);
 
+        Nan::SetPrototypeMethod(tpl, "Version", Version);
+        Nan::SetPrototypeMethod(tpl, "Complete", Complete);
+        Nan::SetPrototypeMethod(tpl, "Diagnose", Diagnose);
+        Nan::SetPrototypeMethod(tpl, "MemoryUsage", MemoryUsage);
+        Nan::SetPrototypeMethod(tpl, "ClearCache", ClearCache);
+
         constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
         Nan::Set(target, Nan::New("autocomplete").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
