@@ -28,11 +28,11 @@ API
 
 Methods:
 
-    Version();                      // Returns the current library and clang version
-    Complete(filename, row, column) // Completes the statement at the given file position
-    Diagnose(filename)              // Returns clang's diagnostic information
-    MemoryUsage()                   // Returns the translation unit cache's memory usage in bytes for each file
-    ClearCache()                    // Removes all cached translation units
+    version();                      // Returns the current library and clang version
+    complete(filename, row, column) // Completes the statement at the given file position
+    diagnose(filename)              // Returns clang's diagnostic information
+    memoryUsage()                   // Returns the translation unit cache's memory usage in bytes for each file
+    clearCache()                    // Removes all cached translation units
 
 Attributes:
 
