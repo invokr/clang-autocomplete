@@ -138,7 +138,7 @@ NAN_SETTER(autocomplete::SetCacheExpiration) {
 NAN_METHOD(autocomplete::Version) {
         CXString clang_v = clang_getClangVersion();
 
-        std::string ver = std::string("0.3.1 (clang-autocomplete); ")+std::string(clang_getCString(clang_v));
+        std::string ver = std::string("0.3.2 (clang-autocomplete); ")+std::string(clang_getCString(clang_v));
         clang_disposeString(clang_v);
 
         info.GetReturnValue().Set(Nan::New(ver.c_str()).ToLocalChecked());

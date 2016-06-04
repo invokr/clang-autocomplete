@@ -34,6 +34,9 @@ Methods:
     memoryUsage()                   // Returns the translation unit cache's memory usage in bytes for each file
     clearCache()                    // Removes all cached translation units
 
+Methods with capital letter (such as Version()) are still available for
+backwards compatibility.
+
 Attributes:
 
     arguments = [];        // Arguments provided to libclang, e.g. ["-I/usr/include"]
