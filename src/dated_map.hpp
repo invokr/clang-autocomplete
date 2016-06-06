@@ -172,7 +172,7 @@ namespace clang_autocomplete {
         }
 
         /** Returns time between expiration checks */
-        void get_frequency() noexcept {
+        uint32_t get_frequency() noexcept {
             return mCheckInterval;
         }
 

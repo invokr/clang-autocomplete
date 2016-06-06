@@ -26,50 +26,57 @@
 #include <string>
 #include <vector>
 
-#include <v8.h>
-#include <node.h>
+#include <nan.h>
 
 #include <clang-c/Index.h>
 #include "dated_map.hpp"
 
-using namespace v8;
-
 namespace clang_autocomplete {
     /** Provides auto-completion functionality through clang's C interface */
-    class autocomplete : public node::ObjectWrap {
+    class autocomplete : public Nan::ObjectWrap {
     public:
         /** Persistend constructor obj for v8 */
-        static Persistent<FunctionTemplate> constructor;
+        static Nan::Persistent<v8::Function> constructor;
 
         /** Node's initialize function */
-        static void Init(Handle<Object> target);
+        //static void Init(Handle<Object> target);
+        static NAN_MODULE_INIT(Init);
 
         /** Returns module version */
-        static Handle<Value> Version(const Arguments& args);
+        //static Handle<Value> Version(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(Version);
 
         /** Returns the current arguments supplied to clang */
-        static Handle<Value> GetArgs(Local<String> property, const AccessorInfo& info);
+        //static Handle<Value> GetArgs(Local<String> property, const AccessorInfo& info);
+        static NAN_GETTER(GetArgs);
 
         /** Sets the arguments supplied to clang */
-        static void SetArgs(Local<String> property, Local<Value> value, const AccessorInfo& info);
+        //void SetArgs(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void>& info);
+        static NAN_SETTER(SetArgs);
 
         /** Returns the cache expiration time. */
-        static Handle<Value> GetCacheExpiration(Local<String> property, const AccessorInfo& info);
+        //static Handle<Value> GetCacheExpiration(Local<String> property, const AccessorInfo& info);
+        static NAN_GETTER(GetCacheExpiration);
 
         /** Sets cache expiration time */
-        static void SetCacheExpiration(Local<String> property, Local<Value> value, const AccessorInfo& info);
+        //static void SetCacheExpiration(Local<String> property, Local<Value> value, const AccessorInfo& info);
+        static NAN_SETTER(SetCacheExpiration);
 
         /** Completes the code at [filename|row|col] */
-        static Handle<Value> Complete(const Arguments& args);
+        //static Handle<Value> Complete(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(Complete);
 
         /** Returns code diagnostic information for [filename] */
-        static Handle<Value> Diagnose(const Arguments& args);
+        //static Handle<Value> Diagnose(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(Diagnose);
 
         /** Returns memory usage of cached translation units in bytes */
-        static Handle<Value> MemoryUsage(const Arguments& args);
+        //static Handle<Value> MemoryUsage(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(MemoryUsage);
 
         /** Purges all cached translation units */
-        static Handle<Value> ClearCache(const Arguments& args);
+        //static Handle<Value> ClearCache(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(ClearCache);
     private:
         /** List of arguments passed to clang */
         std::vector<std::string> mArgs;
@@ -85,7 +92,8 @@ namespace clang_autocomplete {
         ~autocomplete();
 
         /** Invoked when a new instance is created in NodeJs */
-        static Handle<Value> New(const Arguments& args);
+        //static Handle<Value> New(const FunctionCallbackInfo<Value>& args);
+        static NAN_METHOD(New);
 
         /** Returns the type of the completion function */
         const char* returnType(CXCursorKind ck);
